@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860" role="img" aria-labelledby="title desc">
+  <title id="title">Medical Center API AWS end-to-end architecture</title>
+  <desc id="desc">Clients reach a private Django API on ECS through an HTTPS Application Load Balancer. The API uses private RDS PostgreSQL, publishes events to SNS and SQS, and is monitored through CloudWatch. IAM, KMS, Secrets Manager, Terraform, ECR, CloudTrail and Budgets support security and operations.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L10,3 L0,6 Z" fill="#334155"/></marker>
+    <style>
+      .title{font:700 28px Arial;fill:#0f172a}.label{font:700 16px Arial;fill:#0f172a}.small{font:13px Arial;fill:#334155}.box{stroke:#334155;stroke-width:2;rx:14}.flow{stroke:#334155;stroke-width:3;fill:none;marker-end:url(#arrow)}.boundary{fill:#f8fafc;stroke:#94a3b8;stroke-width:2;stroke-dasharray:8 6;rx:18}.security{fill:#fef3c7}.compute{fill:#dbeafe}.data{fill:#dcfce7}.ops{fill:#f3e8ff}.client{fill:#e0f2fe}
+    </style>
+  </defs>
+  <rect width="1400" height="860" fill="#ffffff"/>
+  <text x="50" y="55" class="title">Medical Center API — AWS end-to-end learning architecture</text>
+  <text x="50" y="82" class="small">Phase 1: ECS/Fargate. Phase 2: migrate the same image and contracts to EKS.</text>
+
+  <rect x="40" y="120" width="210" height="120" class="box client"/>
+  <text x="65" y="155" class="label">Clients</text><text x="65" y="183" class="small">Swagger / web client</text><text x="65" y="205" class="small">Django Admin</text>
+  <rect x="300" y="120" width="250" height="120" class="box security"/>
+  <text x="325" y="155" class="label">Edge</text><text x="325" y="183" class="small">Route 53 (optional)</text><text x="325" y="205" class="small">ACM + HTTPS + ALB</text>
+  <path d="M250 180 H300" class="flow"/>
+
+  <rect x="590" y="105" width="770" height="500" class="boundary"/>
+  <text x="620" y="140" class="label">AWS VPC</text><text x="720" y="140" class="small">public ALB subnet → private application/data subnets</text>
+  <rect x="630" y="180" width="270" height="140" class="box compute"/>
+  <text x="655" y="215" class="label">ECS / Fargate</text><text x="655" y="243" class="small">Django API task</text><text x="655" y="267" class="small">Worker task</text><text x="655" y="291" class="small">ECR image by digest</text>
+  <rect x="950" y="180" width="330" height="140" class="box data"/>
+  <text x="975" y="215" class="label">Data and messaging</text><text x="975" y="243" class="small">RDS PostgreSQL (private)</text><text x="975" y="267" class="small">SNS domain events</text><text x="975" y="291" class="small">SQS + dead-letter queue</text>
+  <path d="M550 180 H630" class="flow"/>
+  <path d="M900 245 H950" class="flow"/>
+  <path d="M765 320 V410 H1110 V320" class="flow"/>
+  <text x="780" y="395" class="small">appointment event → SNS → SQS → worker</text>
+
+  <rect x="630" y="390" width="250" height="130" class="box security"/>
+  <text x="655" y="425" class="label">Security</text><text x="655" y="453" class="small">IAM task roles</text><text x="655" y="477" class="small">Secrets Manager</text><text x="655" y="501" class="small">KMS encryption</text>
+  <rect x="930" y="390" width="350" height="130" class="box ops"/>
+  <text x="955" y="425" class="label">Operations and governance</text><text x="955" y="453" class="small">CloudWatch logs, metrics, alarms</text><text x="955" y="477" class="small">CloudTrail + Budgets + cost tags</text><text x="955" y="501" class="small">Terraform + CI/CD</text>
+
+  <rect x="40" y="680" width="1320" height="120" class="boundary"/>
+  <text x="70" y="720" class="label">Developer workflow</text><text x="70" y="750" class="small">GitHub → tests and coverage → Docker build → ECR → Terraform plan/apply → ECS deployment → health check and rollback</text>
+  <text x="70" y="778" class="small">Second stage: EKS + Helm + ALB Controller + IRSA, reusing ECR, RDS, messaging, security and observability contracts.</text>
+  <path d="M765 605 V680" class="flow"/>
+</svg>

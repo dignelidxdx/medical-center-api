@@ -218,3 +218,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Cloud, infrastructure, and local credentials
+.aws/
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json

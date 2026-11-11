@@ -1,0 +1,13 @@
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "-q"
+
+[tool.coverage.run]
+branch = true
+source = ["appointments", "config", "facilities", "patients", "scheduling", "specialists"]
+omit = ["*/migrations/*", "*/admin.py", "*/apps.py", "*/asgi.py", "*/wsgi.py"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
+
