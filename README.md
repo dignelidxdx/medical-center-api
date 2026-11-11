@@ -130,6 +130,30 @@ docker compose exec web python manage.py check
 docker compose down
 ```
 
+### Docker image security scan
+
+After building the application image, run Docker Scout to inspect its software components and known CVEs:
+
+```bash
+docker compose build web
+docker scout cves local://medical-center-api:local
+```
+
+The scan is read-only and does not publish the image. Use it before pushing an image to ECR or deploying to AWS. To show only fixable critical and high vulnerabilities:
+
+```bash
+docker scout cves --only-fixed --only-severity critical,high local://medical-center-api:local
+```
+
+The equivalent Makefile shortcuts are:
+
+```bash
+make build
+make scan
+```
+
+Docker Scout analyzes the image artifact and reports CVEs; a finding must be reviewed before deciding whether to update the base image or Python dependencies. See the [Docker Scout CVE command reference](https://docs.docker.com/reference/cli/docker/scout/cves/).
+
 ### Makefile shortcuts
 
 The repository has one `Makefile`; a `justfile` is not required. Use the Makefile from WSL, Git Bash, Linux, or macOS:
@@ -245,6 +269,40 @@ docker compose exec web python manage.py sqlmigrate specialists 0001
 The reference DDL is available at [docs/database/schema.sql](docs/database/schema.sql). It is useful for inspection or database discussions, but it should not replace Django migrations.
 
 ## Deployment readiness
+
+### Distroless production image
+
+The project includes a Distroless production image for the Django API. The approach is based on the [GoogleContainerTools/distroless project](https://github.com/GoogleContainerTools/distroless) and uses its official Python runtime image, `gcr.io/distroless/python3-debian13:nonroot`, as the final stage. The goal is to reduce the final image size and runtime attack surface by leaving out the shell, package manager, and build tools.
+
+This project does not copy the Distroless repository. It uses the published Distroless image as a base and adapts the multi-stage build to Medical Center API. Dependencies are installed in a builder image and only the application, Python packages, and runtime are copied into the final image. The regular `Dockerfile` remains the development image used by Docker Compose.
+
+```bash
+docker build -f Dockerfile.distroless -t medical-center-api:distroless .
+docker scout cves local://medical-center-api:distroless
+```
+
+The Distroless build uses Docker's layer cache. Since `requirements.txt` is copied before the application source, unchanged dependencies are reused on subsequent builds. To refresh only the dependency-installation layer, pass a new cache-busting value:
+
+```powershell
+docker build -f Dockerfile.distroless `
+  --build-arg CACHE_BUST=$(Get-Date -Format yyyyMMddHHmmss) `
+  -t medical-center-api:distroless .
+```
+
+Use `--no-cache` only when you intentionally need every layer rebuilt:
+
+```powershell
+docker build --no-cache -f Dockerfile.distroless -t medical-center-api:distroless .
+```
+
+The image runs as the non-root `nonroot` user and uses a vector-form `CMD` because Distroless images do not include a shell or package manager. Migrations must run as a release step from a migration-capable image or job before starting the API. Docker Compose continues to use the regular development image because its entrypoint needs shell tools to wait for PostgreSQL.
+
+Makefile shortcuts:
+
+```bash
+make build-distroless
+make scan-distroless
+```
 
 ### AWS end-to-end learning architecture
 

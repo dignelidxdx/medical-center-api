@@ -1,0 +1,35 @@
+# Build dependencies and Python packages in a normal builder image.
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /build
+COPY requirements.txt .
+ARG CACHE_BUST=stable
+RUN echo "Dependency cache key: ${CACHE_BUST}"
+RUN python -m pip install --upgrade pip \
+    && python -m pip install --target /opt/python-packages -r requirements.txt
+
+# Distroless contains the Python runtime but no shell or package manager.
+# Migrations must run as a separate release step before the API starts.
+FROM gcr.io/distroless/python3-debian13:nonroot
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/opt/python-packages:/app
+
+WORKDIR /app
+COPY --from=builder /opt/python-packages /opt/python-packages
+COPY appointments appointments
+COPY config config
+COPY facilities facilities
+COPY manage.py manage.py
+COPY patients patients
+COPY scheduling scheduling
+COPY specialists specialists
+
+USER nonroot
+EXPOSE 8000
+CMD ["manage.py", "runserver", "0.0.0.0:8000"]
